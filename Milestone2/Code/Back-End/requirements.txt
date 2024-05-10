@@ -1,14 +1,18 @@
-i2c-tools 
-python-smbus
+# For Camera 
 opencv-python-headless
 VL53L5CX
 lgpio
 azure-iot-device 
 asyncio
 requests
-beautifulsoup4
 streamlit
 psycopg2-binary
 python-dotenv
 azure-storage-blob
-matplotlib
+azure-data-tables
+
+# For IR sensor
+board
+adafruit-blinka
+adafruit-circuitpython-ads1x15
+
