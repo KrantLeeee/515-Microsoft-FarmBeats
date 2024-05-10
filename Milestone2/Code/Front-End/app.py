@@ -168,17 +168,39 @@ with main_col:
     st.write("### Expert Suggestions")
     st.write("Call us for further assistance or visit our knowledge base.")
 
+# 添加样式，固定侧栏位置
+st.markdown(
+    """
+    <style>
+    .fixed-sub-col {
+        position: fixed;
+        top: 200px;  /* 可以调整顶端距离，根据实际需要更改 */
+        right: 200px;  /* 可以调整右端距离，根据页面布局调整 */
+        width: 25%;  /* 根据需要调整侧栏宽度 */
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        z-index: 100;
+    }
+    </style>
+    """, unsafe_allow_html=True
+)
+
 # 侧列 (右)
 with sub_col:
-    # 我的设备列表
-    st.write("### My Device List")
-    st.write("Device 1 (Update 2h ago) ⯈")
-    st.write("Device 2 (Update 2h ago) ⯈")
-    st.write("+ Add new device")
-
-    # 我的资料
-    st.write("### My Profile")
-    st.write("Contact Information:")
-    st.write("Email: youremail@example.com")
-    st.write("Phone: +123456789")
-    st.write("Device Settings: Device 1, Device 2")
+    st.markdown(
+        """
+        <div class='fixed-sub-col'>
+        <h3>My Device List</h3>
+        <p>Device 1 (Update 2h ago) ⯈</p>
+        <p>Device 2 (Update 2h ago) ⯈</p>
+        <p>+ Add new device</p>
+        <h3>My Profile</h3>
+        <p>Contact Information:</p>
+        <p>Email: youremail@example.com</p>
+        <p>Phone: +123456789</p>
+        <p>Device Settings: Device 1, Device 2</p>
+        </div>
+        """, unsafe_allow_html=True
+    )
