@@ -5,21 +5,21 @@ from azure.data.tables import TableServiceClient
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
-# Load environment variables
+# 加载环境变量
 load_dotenv()
 
-# Initialize TableServiceClient
+# 初始化 TableServiceClient
 connect_str = os.getenv("connection_string")
 table_service = TableServiceClient.from_connection_string(connect_str)
 table_client = table_service.get_table_client("DeviceTest01")
 
-# Function to get data by date using the "TS" field
+# 函数：按日期范围获取数据
 def get_data_by_date_range(start_date, end_date):
     query = f"TS ge '{start_date.isoformat()}Z' and TS lt '{end_date.isoformat()}Z'"
     data = table_client.query_entities(query, select=['ImageUrl', 'Description', 'TS', 'Weevil_number'])
     return sorted(data, key=lambda x: x['TS'])
 
-# Function to aggregate data monthly or daily
+# 函数：按月或日汇总数据
 def aggregate_data(data, by='month'):
     aggregated = {}
     for entry in data:
@@ -31,7 +31,7 @@ def aggregate_data(data, by='month'):
         aggregated[key] = aggregated.get(key, 0) + entry.get('Weevil_number', 0)
     return aggregated
 
-# Function to generate a line chart for peaweevil detection
+# 函数：生成豌豆象检测折线图
 def generate_peaweevil_chart(data, by='month'):
     aggregated = aggregate_data(data, by)
     timeline = list(aggregated.keys())
@@ -46,64 +46,117 @@ def generate_peaweevil_chart(data, by='month'):
     plt.grid(True)
     st.pyplot(plt)
 
-# SVG icons
+# 函数：查找数据集中最早的时间
+def find_earliest_data():
+    all_data = table_client.query_entities(query_filter="", select=['TS', 'Weevil_number'])
+    all_dates = [datetime.fromisoformat(entry['TS'].replace('Z', '')) for entry in all_data]
+
+    if all_dates:
+        return min(all_dates)
+    else:
+        return datetime.today() - timedelta(days=365)
+
+# SVG 图标
 user_icon_svg = """
-<svg width="39" height="39" viewBox="0 0 39 39" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M0.804688 0.444336H38.2352V37.8749H0.804688V0.444336Z" fill="white" fill-opacity="0.01"/>
-<path d="M19.5197 16.0402C22.9651 16.0402 25.7581 13.2472 25.7581 9.80178C25.7581 6.35639 22.9651 3.56335 19.5197 3.56335C16.0743 3.56335 13.2812 6.35639 13.2812 9.80178C13.2812 13.2472 16.0743 16.0402 19.5197 16.0402Z" stroke="black" stroke-width="7.10427" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M33.5573 34.7556C33.5573 27.0035 27.2729 20.7191 19.5208 20.7191C11.7687 20.7191 5.48438 27.0035 5.48438 34.7556" stroke="black" stroke-width="7.10427" stroke-linecap="round" stroke-linejoin="round"/>
+<svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M13.9937 1C6.8175 1 1 6.8175 1 13.9937C1 21.1699 6.8175 26.9875 13.9937 26.9875C21.1699 26.9875 26.9875 21.1699 26.9875 13.9937C26.9875 6.8175 21.1699 1 13.9937 1Z" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M3.94922 22.2391C3.94922 22.2391 6.84555 18.5415 13.9921 18.5415C21.1386 18.5415 24.0351 22.2391 24.0351 22.2391" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M13.9958 13.994C16.1487 13.994 17.8939 12.2488 17.8939 10.0959C17.8939 7.94301 16.1487 6.19775 13.9958 6.19775C11.8428 6.19775 10.0977 7.94301 10.0977 10.0959C10.0977 12.2488 11.8428 13.994 13.9958 13.994Z" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
 """
 
 notification_icon_svg = """
-<svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M0 0H43.375V43.375H0V0Z" fill="white" fill-opacity="0.01"/>
-<path d="M39.7591 14.4583V32.5312H26.2044L21.6862 37.0495L17.168 32.5312H3.61328V5.42188H30.7227" stroke="black" stroke-width="1.7975" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M20.7812 18.0729H22.5908" stroke="black" stroke-width="1.7975" stroke-linecap="round"/>
-<path d="M29.8203 18.0729H31.6266" stroke="black" stroke-width="1.7975" stroke-linecap="round"/>
-<path d="M11.7461 18.0729H13.5524" stroke="black" stroke-width="1.7975" stroke-linecap="round"/>
-<path d="M38.8555 9.03662C40.3527 9.03662 41.5664 7.82289 41.5664 6.32568C41.5664 4.82847 40.3527 3.61475 38.8555 3.61475C37.3583 3.61475 36.1445 4.82847 36.1445 6.32568C36.1445 7.82289 37.3583 9.03662 38.8555 9.03662Z" fill="black"/>
+<svg width="27" height="27" viewBox="0 0 27 27" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M7.28125 13.9297H20.6215" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M7.28125 8.59326H15.2854" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1.94531 24.988V4.5914C1.94531 3.11787 3.13984 1.92334 4.61337 1.92334H23.2898C24.7633 1.92334 25.9578 3.11787 25.9578 4.5914V17.9317C25.9578 19.4052 24.7633 20.5997 23.2898 20.5997H8.56376C7.75324 20.5997 6.98668 20.9682 6.48035 21.6011L3.37075 25.488C2.89809 26.0789 1.94531 25.7447 1.94531 24.988Z" stroke="black" stroke-width="2"/>
 </svg>
 """
 
-# Streamlit App Layout
-# Top Bar
-col1, col2, col3 = st.columns([1, 5, 1])
-with col1:
-    st.image('https://515farmdetector.blob.core.windows.net/assets/Logo.png', width=80)
-with col2:
-    st.write("<h1 style='text-align:center;'>FarmDetector</h1>", unsafe_allow_html=True)
-with col3:
-    st.write(notification_icon_svg, unsafe_allow_html=True)
+# Streamlit App 布局
+# 顶部栏
+with st.container():
+    # 将顶部栏用两个列布局，居中对齐并右对齐 SVG 图标
+    col1, col2 = st.columns([10, 2], gap="small")
+    with col1:
+        # 使用 markdown 让图标居中
+        st.markdown("<div style='text-align: center;'>"
+                    "<img src='https://515farmdetector.blob.core.windows.net/assets/Logo2.png' width='250'>"
+                    "</div>", unsafe_allow_html=True)
+    with col2:
+        # 使用 markdown，让图标垂直居中并右对齐
+        st.markdown(
+            f"<div style='text-align: right; vertical-align: middle;'>"
+            f"<span style='display: inline-block;'>{user_icon_svg}</span>"
+            f"<span style='display: inline-block; margin-left: 20px;'>{notification_icon_svg}</span>"
+            "</div>", unsafe_allow_html=True
+        )
 
-# Page Split Layout
-main_col, sub_col = st.columns([2, 1])
+st.write("\n" * 6)  # 插入 3 行的空白行
 
-# Main Column (Left)
+# 页面分割布局
+main_col, sub_col = st.columns([2, 1], gap="large")
+
+# 主列 (左)
 with main_col:
-    # Peaweevil Detection Chart
+    # 豌豆象检测折线图
     st.write("### Peaweevil Detection Chart")
     chart_type = st.radio("Select view mode", ("Month", "Day"))
     by = 'month' if chart_type == "Month" else 'day'
-    today = datetime.today()
-    start_date = today.replace(day=1) if by == 'month' else today - timedelta(days=7)
-    data = get_data_by_date_range(start_date, today)
+    start_date = find_earliest_data()
+    end_date = datetime.today()
+    data = get_data_by_date_range(start_date, end_date)
     generate_peaweevil_chart(data, by)
 
     # Date Picker
     st.write("### Choose a date")
-    selected_date = st.date_input("Select a date", today)
+    selected_date = st.date_input("Select a date", datetime.today())
 
     # Display Images and Descriptions for the selected date
-    date_data = get_data_by_date_range(datetime(selected_date.year, selected_date.month, selected_date.day), 
-                                       datetime(selected_date.year, selected_date.month, selected_date.day) + timedelta(days=1))
+    date_data = get_data_by_date_range(
+        datetime(selected_date.year, selected_date.month, selected_date.day),
+        datetime(selected_date.year, selected_date.month, selected_date.day) + timedelta(days=1)
+    )
+
+    # Number of columns to display side by side
+    num_columns = 2
+
+    # Add custom CSS for rounded corners and gap between images
+    st.markdown(
+        """
+        <style>
+        .rounded-img {
+            border-radius: 10px;  /* Adjust border radius as needed */
+            margin-right: 10px;  /* Adjust gap between images */
+        }
+        </style>
+        """, unsafe_allow_html=True
+    )
+
+    # Create columns based on the desired number
+    cols = st.columns(num_columns)
+
+    # Add images into the columns in a round-robin manner
     if date_data:
-        for entry in date_data:
-            st.image(entry['ImageUrl'], caption=entry['Description'])
+        for i, entry in enumerate(date_data):
+            col = cols[i % num_columns]
+            # Create a formatted description string
+            description = (
+            f"Time: {entry['TS'][11:19]}<br>"
+            f"Pest category: Weevil<br>"
+            f"Number: {entry['Weevil_number']}"
+            )
+
+
+            # Render image with the custom class and description below
+            col.markdown(
+                f"<img src='{entry['ImageUrl']}' width='100%' class='rounded-img'><p>{description}</p>",
+                unsafe_allow_html=True
+            )
     else:
         st.write("No data found for the selected date.")
 
-    # Warning List
+    # 警告列表
     st.write("### Warning List")
     warnings = [{'title': 'Weevil count high', 'severity': 'High'}, {'title': 'Device disconnected', 'severity': 'Medium'}]
     for warning in warnings:
@@ -111,19 +164,19 @@ with main_col:
         st.write(f"<span style='color:{severity_color};'>●</span> {warning['title']}", unsafe_allow_html=True)
         st.checkbox(f"Mark as solved: {warning['title']}")
 
-    # Expert Suggestion Area
+    # 专家建议区域
     st.write("### Expert Suggestions")
     st.write("Call us for further assistance or visit our knowledge base.")
 
-# Sub Column (Right)
+# 侧列 (右)
 with sub_col:
-    # My Device List
+    # 我的设备列表
     st.write("### My Device List")
     st.write("Device 1 (Update 2h ago) ⯈")
     st.write("Device 2 (Update 2h ago) ⯈")
     st.write("+ Add new device")
 
-    # My Profile
+    # 我的资料
     st.write("### My Profile")
     st.write("Contact Information:")
     st.write("Email: youremail@example.com")
